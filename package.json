@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/nteract/nteract",
   "scripts": {
-    "postinstall": "install-app-deps",
+    "postinstall": "install-app-deps && npm run lerna && npm run build",
     "reinstall": "npm run clean && rimraf node_modules && npm install",
     "prestart": "npm run build",
     "start": "npm run spawn",
@@ -32,7 +32,6 @@
     "lint:fix": "eslint . --fix",
     "prebuild": "rimraf lib",
     "lerna": "lerna bootstrap --hoist",
-    "install": "npm run lerna && npm run build",
     "build": "npm run build:packages && npm run build:renderer && npm run build:main",
     "build:renderer": "webpack --progress --colors",
     "build:renderer:watch": "npm run build:renderer -- --watch",
