@@ -100,7 +100,6 @@
     "setupFiles": ["./scripts/mockument"]
   },
   "dependencies": {
-    "codemirror": "^5.28.0",
     "github": "^9.0.0",
     "ijavascript": "^5.0.17",
     "jmp": "^0.7.5",

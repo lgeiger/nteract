@@ -13,7 +13,11 @@ const options = {
   module: {
     rules: [
       { test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" },
-      { test: /\.json$/, loader: "json-loader" }
+      { test: /\.json$/, loader: "json-loader" },
+      {
+        test: /\.css$/,
+        use: [{ loader: "style-loader" }, { loader: "css-loader" }]
+      }
     ]
   },
   resolve: {
@@ -72,7 +76,7 @@ const rendererConfig = Object.assign({}, options, {
     new LodashModuleReplacementPlugin(),
     new webpack.optimize.ModuleConcatenationPlugin(),
 
-    new webpack.IgnorePlugin(/\.(css|less)$/),
+    new webpack.IgnorePlugin(/\.less$/),
 
     // build vendor bundle (including common code chunks used in other bundles)
     new webpack.optimize.CommonsChunkPlugin({

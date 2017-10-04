@@ -12,6 +12,10 @@ import { Map as ImmutableMap } from "immutable";
 
 import { transforms } from "@nteract/transforms";
 
+import "codemirror/lib/codemirror.css";
+import "codemirror/addon/hint/show-hint.css";
+import "codemirror/addon/dialog/dialog.css";
+
 import excludedIntelliSenseTriggerKeys from "./excludedIntelliSenseKeys";
 import { codeComplete, pick } from "./complete";
 import { tool } from "./tooltip";
