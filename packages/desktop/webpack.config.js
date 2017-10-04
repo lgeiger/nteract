@@ -1,4 +1,5 @@
 const LodashModuleReplacementPlugin = require("lodash-webpack-plugin");
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const webpack = require("webpack");
 const path = require("path");
 
@@ -16,7 +17,21 @@ const options = {
       { test: /\.json$/, loader: "json-loader" },
       {
         test: /\.css$/,
-        use: [{ loader: "style-loader" }, { loader: "css-loader" }]
+        use: ExtractTextPlugin.extract({
+          fallback: "style-loader",
+          use: "css-loader"
+        })
+      },
+      {
+        test: /\.(png|woff|woff2|eot|ttf|svg)$/,
+        use: [
+          {
+            loader: "url-loader",
+            options: {
+              limit: 10000
+            }
+          }
+        ]
       }
     ]
   },
@@ -85,7 +100,8 @@ const rendererConfig = Object.assign({}, options, {
     new webpack.SourceMapDevToolPlugin({
       filename: "[name].js.map",
       exclude: ["vendor.js"]
-    })
+    }),
+    new ExtractTextPlugin("styles.css")
   ]
 });
 

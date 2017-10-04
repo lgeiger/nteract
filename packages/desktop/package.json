@@ -92,7 +92,7 @@
       "category": "science",
       "packageCategory": "editors"
     },
-    "files": ["lib/*.js", "static"],
+    "files": ["lib/*.js", "lib/*.css", "lib/*.woff", "lib/*.woff2", "static"],
     "extraResources": ["bin", "example-notebooks"],
     "npmSkipBuildFromSource": true
   },
@@ -104,8 +104,6 @@
     "ijavascript": "^5.0.17",
     "jmp": "^0.7.5",
     "mathjax-electron": "^2.0.1",
-    "normalize.css": "^7.0.0",
-    "nteract-assets": "^3.0.0",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
@@ -136,6 +134,8 @@
     "kernelspecs": "^2.0.0",
     "leaflet": "^1.0.3",
     "lodash": "^4.17.4",
+    "normalize.css": "^7.0.0",
+    "nteract-assets": "^3.0.0",
     "prop-types": "^15.5.10",
     "react-dnd": "^2.4.0",
     "react-dnd-html5-backend": "^2.4.1",
