@@ -135,33 +135,31 @@ describe("closeNotebookEpic", () => {
 
       const testScheduler = buildScheduler();
 
-      const inputActions = {
-        a: actions.closeNotebook({ contentRef: "contentRef1" }),
-        b: coreActions.killKernelSuccessful({ kernelRef: "kernelRef1" })
-      };
+      testScheduler.run(helpers => {
+        const { hot, expectObservable } = helpers;
+        const inputActions = {
+          a: actions.closeNotebook({ contentRef: "contentRef1" }),
+          b: coreActions.killKernelSuccessful({ kernelRef: "kernelRef1" })
+        };
 
-      const outputActions = {
-        c: coreActions.killKernel({
-          kernelRef: "kernelRef1",
-          restarting: false
-        }),
-        d: actions.closeNotebookProgress({
-          newState: DESKTOP_NOTEBOOK_CLOSING_READY_TO_CLOSE
-        })
-      };
+        const outputActions = {
+          c: coreActions.killKernel({
+            kernelRef: "kernelRef1",
+            restarting: false
+          }),
+          d: actions.closeNotebookProgress({
+            newState: DESKTOP_NOTEBOOK_CLOSING_READY_TO_CLOSE
+          })
+        };
 
-      const inputMarbles = "a b";
-      const outputMarbles = "c d";
+        const inputMarbles = "a b";
+        const outputMarbles = "c d";
 
-      const inputAction$ = new ActionsObservable(
-        testScheduler.createHotObservable(inputMarbles, inputActions)
-      );
-      const outputAction$ = closeNotebookEpic(inputAction$, { value: state });
+        const inputAction$ = hot(inputMarbles, inputActions);
+        const outputAction$ = closeNotebookEpic(inputAction$, { value: state });
 
-      testScheduler
-        .expectObservable(outputAction$)
-        .toBe(outputMarbles, outputActions);
-      testScheduler.flush();
+        expectObservable(outputAction$).toBe(outputMarbles, outputActions);
+      });
     });
 
     test("promptly continue when KILL_KERNEL fails", async () => {
@@ -169,36 +167,34 @@ describe("closeNotebookEpic", () => {
 
       const testScheduler = buildScheduler();
 
-      const inputActions = {
-        a: actions.closeNotebook({ contentRef: "contentRef1" }),
-        b: coreActions.killKernelFailed({
-          kernelRef: "kernelRef1",
-          error: new Error("barf")
-        })
-      };
+      testScheduler.run(helpers => {
+        const { hot, expectObservable } = helpers;
+        const inputActions = {
+          a: actions.closeNotebook({ contentRef: "contentRef1" }),
+          b: coreActions.killKernelFailed({
+            kernelRef: "kernelRef1",
+            error: new Error("barf")
+          })
+        };
 
-      const outputActions = {
-        c: coreActions.killKernel({
-          kernelRef: "kernelRef1",
-          restarting: false
-        }),
-        d: actions.closeNotebookProgress({
-          newState: DESKTOP_NOTEBOOK_CLOSING_READY_TO_CLOSE
-        })
-      };
+        const outputActions = {
+          c: coreActions.killKernel({
+            kernelRef: "kernelRef1",
+            restarting: false
+          }),
+          d: actions.closeNotebookProgress({
+            newState: DESKTOP_NOTEBOOK_CLOSING_READY_TO_CLOSE
+          })
+        };
 
-      const inputMarbles = "a b";
-      const outputMarbles = "c d";
+        const inputMarbles = "a b";
+        const outputMarbles = "c d";
 
-      const inputAction$ = new ActionsObservable(
-        testScheduler.createHotObservable(inputMarbles, inputActions)
-      );
-      const outputAction$ = closeNotebookEpic(inputAction$, { value: state });
+        const inputAction$ = hot(inputMarbles, inputActions);
+        const outputAction$ = closeNotebookEpic(inputAction$, { value: state });
 
-      testScheduler
-        .expectObservable(outputAction$)
-        .toBe(outputMarbles, outputActions);
-      testScheduler.flush();
+        expectObservable(outputAction$).toBe(outputMarbles, outputActions);
+      });
     });
 
     test("continue after a timeout period when no KILL_KERNEL result is received", async () => {
@@ -206,43 +202,34 @@ describe("closeNotebookEpic", () => {
 
       const testScheduler = buildScheduler();
 
-      const inputActions = {
-        a: actions.closeNotebook({ contentRef: "contentRef1" })
-      };
+      testScheduler.run(helpers => {
+        const { hot, expectObservable } = helpers;
+        const inputActions = {
+          a: actions.closeNotebook({ contentRef: "contentRef1" })
+        };
 
-      const outputActions = {
-        c: coreActions.killKernel({
-          kernelRef: "kernelRef1",
-          restarting: false
-        }),
-        d: actions.closeNotebookProgress({
-          newState: DESKTOP_NOTEBOOK_CLOSING_READY_TO_CLOSE
-        })
-      };
+        const outputActions = {
+          c: coreActions.killKernel({
+            kernelRef: "kernelRef1",
+            restarting: false
+          }),
+          d: actions.closeNotebookProgress({
+            newState: DESKTOP_NOTEBOOK_CLOSING_READY_TO_CLOSE
+          })
+        };
 
-      // Unable to get TestScheduler to honor timeout() in the epic, even after
-      // trying the work-arounds specified in https://github.com/redux-observable/redux-observable/issues/180
-      // Let's wait for rsjs 6 and try again.
-      // In the meantime I've manually confirmed that the full desktop app correctly times out.
-      //      const inputMarbles =  "a" + "-".repeat(6000) + "";
-      //      const outputMarbles = "c" + "-".repeat(5000) + "d";
+        const inputMarbles =  "a          6000ms |";
+        const outputMarbles = "c 4999ms d 1000ms |"; // Timeout after 5s
 
-      const inputMarbles = "a |"; // Must explicitly complete (`|`) our input observable; believe this is related to the timeout() issue
-      const outputMarbles = "c (d|)";
+        const inputAction$ = hot(inputMarbles, inputActions);
 
-      const inputAction$ = new ActionsObservable(
-        testScheduler.createHotObservable(inputMarbles, inputActions)
-      );
-      const outputAction$ = closeNotebookEpic(
-        inputAction$,
-        { value: state },
-        testScheduler
-      );
+        const outputAction$ = closeNotebookEpic(
+          inputAction$,
+          { value: state }
+        );
 
-      testScheduler
-        .expectObservable(outputAction$)
-        .toBe(outputMarbles, outputActions);
-      testScheduler.flush();
+        expectObservable(outputAction$).toBe(outputMarbles, outputActions);
+      });
     });
   });
 

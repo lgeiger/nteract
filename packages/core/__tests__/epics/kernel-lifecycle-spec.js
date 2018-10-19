@@ -17,6 +17,9 @@ import {
   watchExecutionStateEpic
 } from "../../src/epics/kernel-lifecycle";
 
+const buildScheduler = () =>
+  new TestScheduler((actual, expected) => expect(actual).toEqual(expected));
+
 describe("acquireKernelInfo", () => {
   test("sends a kernel_info_request and processes kernel_info_reply", async function(done) {
     const sent = new Subject();
@@ -198,58 +201,54 @@ describe("restartKernelEpic", () => {
       })
     };
 
-    const testScheduler = new TestScheduler((actual, expected) =>
-      expect(actual).toEqual(expected)
-    );
+    const testScheduler = buildScheduler();
 
-    const inputActions = {
-      a: actions.restartKernel({
-        outputHandling: "None",
-        kernelRef: "oldKernelRef",
-        contentRef: contentRef
-      }),
-      b: actions.launchKernelSuccessful({
-        kernel: "",
-        kernelRef: newKernelRef,
-        contentRef: contentRef,
-        selectNextKernel: true
-      })
-    };
+    testScheduler.run(helpers => {
+      const { hot, expectObservable } = helpers;
+      const inputActions = {
+        a: actions.restartKernel({
+          outputHandling: "None",
+          kernelRef: "oldKernelRef",
+          contentRef: contentRef
+        }),
+        b: actions.launchKernelSuccessful({
+          kernel: "",
+          kernelRef: newKernelRef,
+          contentRef: contentRef,
+          selectNextKernel: true
+        })
+      };
 
-    const outputActions = {
-      c: actions.killKernel({
-        restarting: true,
-        kernelRef: "oldKernelRef"
-      }),
-      d: actions.launchKernelByName({
-        kernelSpecName: null,
-        cwd: ".",
-        kernelRef: newKernelRef,
-        selectNextKernel: true,
-        contentRef: contentRef
-      }),
-      e: actions.restartKernelSuccessful({
-        kernelRef: newKernelRef,
-        contentRef: contentRef
-      })
-    };
+      const outputActions = {
+        c: actions.killKernel({
+          restarting: true,
+          kernelRef: "oldKernelRef"
+        }),
+        d: actions.launchKernelByName({
+          kernelSpecName: null,
+          cwd: ".",
+          kernelRef: newKernelRef,
+          selectNextKernel: true,
+          contentRef: contentRef
+        }),
+        e: actions.restartKernelSuccessful({
+          kernelRef: newKernelRef,
+          contentRef: contentRef
+        })
+      };
 
-    const inputMarbles = "a   b|";
-    const outputMarbles = "(cd)e|";
+      const inputMarbles = "a---b|";
+      const outputMarbles = "(cd)e|";
 
-    const inputAction$ = new ActionsObservable(
-      testScheduler.createHotObservable(inputMarbles, inputActions)
-    );
-    const outputAction$ = restartKernelEpic(
-      inputAction$,
-      { value: state },
-      () => newKernelRef
-    );
+      const inputAction$ = hot(inputMarbles, inputActions);
+      const outputAction$ = restartKernelEpic(
+        inputAction$,
+        { value: state },
+        () => newKernelRef
+      );
 
-    testScheduler
-      .expectObservable(outputAction$)
-      .toBe(outputMarbles, outputActions);
-    testScheduler.flush();
+      expectObservable(outputAction$).toBe(outputMarbles, outputActions);
+    });
   });
   test("work for outputHandling Restart and Run All", () => {
     const contentRef = "contentRef";
@@ -273,60 +272,57 @@ describe("restartKernelEpic", () => {
       })
     };
 
-    const testScheduler = new TestScheduler((actual, expected) =>
-      expect(actual).toEqual(expected)
-    );
+    const testScheduler = buildScheduler();
 
-    const inputActions = {
-      a: actions.restartKernel({
-        outputHandling: "Run All",
-        kernelRef: "oldKernelRef",
-        contentRef: contentRef
-      }),
-      b: actions.launchKernelSuccessful({
-        kernel: "",
-        kernelRef: newKernelRef,
-        contentRef: contentRef,
-        selectNextKernel: true
-      })
-    };
+    testScheduler.run(helpers => {
+      const { hot, expectObservable } = helpers;
 
-    const outputActions = {
-      c: actions.killKernel({
-        restarting: true,
-        kernelRef: "oldKernelRef"
-      }),
-      d: actions.launchKernelByName({
-        kernelSpecName: null,
-        cwd: ".",
-        kernelRef: newKernelRef,
-        selectNextKernel: true,
-        contentRef: contentRef
-      }),
-      e: actions.restartKernelSuccessful({
-        kernelRef: newKernelRef,
-        contentRef: contentRef
-      }),
-      f: actions.executeAllCells({
-        contentRef: contentRef
-      })
-    };
+      const inputActions = {
+        a: actions.restartKernel({
+          outputHandling: "Run All",
+          kernelRef: "oldKernelRef",
+          contentRef: contentRef
+        }),
+        b: actions.launchKernelSuccessful({
+          kernel: "",
+          kernelRef: newKernelRef,
+          contentRef: contentRef,
+          selectNextKernel: true
+        })
+      };
 
-    const inputMarbles = "a   b   |";
-    const outputMarbles = "(cd)(ef)|";
+      const outputActions = {
+        c: actions.killKernel({
+          restarting: true,
+          kernelRef: "oldKernelRef"
+        }),
+        d: actions.launchKernelByName({
+          kernelSpecName: null,
+          cwd: ".",
+          kernelRef: newKernelRef,
+          selectNextKernel: true,
+          contentRef: contentRef
+        }),
+        e: actions.restartKernelSuccessful({
+          kernelRef: newKernelRef,
+          contentRef: contentRef
+        }),
+        f: actions.executeAllCells({
+          contentRef: contentRef
+        })
+      };
 
-    const inputAction$ = new ActionsObservable(
-      testScheduler.createHotObservable(inputMarbles, inputActions)
-    );
-    const outputAction$ = restartKernelEpic(
-      inputAction$,
-      { value: state },
-      () => newKernelRef
-    );
+      const inputMarbles = "a---b---|";
+      const outputMarbles = "(cd)(ef)|";
 
-    testScheduler
-      .expectObservable(outputAction$)
-      .toBe(outputMarbles, outputActions);
-    testScheduler.flush();
+      const inputAction$ = hot(inputMarbles, inputActions);
+      const outputAction$ = restartKernelEpic(
+        inputAction$,
+        { value: state },
+        () => newKernelRef
+      );
+
+      expectObservable(outputAction$).toBe(outputMarbles, outputActions);
+    });
   });
 });
